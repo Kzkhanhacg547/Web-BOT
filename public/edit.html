@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit JSON File</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Edit JSON File</h1>
+  <form id="editForm">
+    <label for="appName">Tên ứng dụng:</label>
+    <input type="text" id="appName" name="appName" required>
+
+    <label for="appVersion">Phiên bản ứng dụng:</label>
+    <input type="text" id="appVersion" name="appVersion" required>
+
+    <label for="appLink">Link tải ứng dụng:</label>
+    <input type="text" id="appLink" name="appLink" required>
+
+    <button type="submit">Thêm dữ liệu</button>
+  </form>
+
+  <script>
+    document.getElementById('editForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const appName = document.getElementById('appName').value;
+      const appVersion = document.getElementById('appVersion').value;
+      const appLink = document.getElementById('appLink').value;
+      
+      fetch('/update-json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          appName: appName,
+          appVersion: appVersion,
+          appLink: appLink
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('Dữ liệu đã được thêm thành công!');
+        document.getElementById('editForm').reset();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Đã xảy ra lỗi khi thêm dữ liệu.');
+      });
+    });
+  </script>
+</body>
+</html>

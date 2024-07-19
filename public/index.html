@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Chatbot Experience</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f0f4f8;
+            --text-color: #333;
+            --chat-bg-color: #fff;
+            --user-message-bg: #4a90e2;
+            --bot-message-bg: #e9ecef;
+            --input-bg: #fff;
+            --border-radius: 15px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Cập nhật CSS cho #main-container */
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            width: 95%;
+            max-width: 1400px;
+            height: 90vh;
+            background-color: var(--chat-bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        /* Cập nhật CSS cho #chat-container */
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Thêm dòng này */
+        }
+
+        /* Cập nhật CSS cho #chat */
+        #chat {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* Thêm dòng này cho iOS */
+        }
+
+        /* Cập nhật CSS cho #input-container */
+        #input-container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-top: 3px solid #ddd;
+        }
+
+        /* Cập nhật CSS cho #media-container */
+        #media-container {
+            height: 30vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Thêm dòng này cho iOS */
+        }
+
+        @media (max-width: 768px) {
+            #main-container {
+                height: 100vh;
+                width: 100%;
+                border-radius: 0;
+            }
+
+            #chat-container {
+                height: 70vh; /* Đảm bảo chiều cao cố định trên mobile */
+            }
+
+            #media-container {
+                height: 30vh;
+            }
+        }
+
+
+        #media-container {
+            height: 30vh;
+            overflow-y: auto;
+        }
+
+        #chat-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+
+
+        #message {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: var(--border-radius);
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 16px;
+            background-color: var(--input-bg);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #send, #search-soundcloud, #search-youtube {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+        }
+
+        .chat-message {
+            margin: 10px 0;
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-out;
+            word-wrap: break-word;
+            position: relative;
+            line-height: 1.4;
+        }
+
+        .media-container {
+            max-width: 100%;
+            margin-top: 8px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+
+        .media-container video,
+        .media-container img,
+        .media-container audio {
+            max-width: 100%;
+            max-height: 200px;
+            width: auto;
+            height: auto;
+            display: block;
+            border-radius: var(--border-radius);
+            object-fit: contain;
+        }
+
+        #audio-player-container, #tracks, #player, #videoList {
+            margin: 10px;
+            padding: 10px;
+            background-color: var(--secondary-color);
+            border-radius: var(--border-radius);
+        }
+
+        .track-item {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .video-card {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: var(--chat-bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .video-card h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .video-card iframe {
+            max-width: 100%;
+            width: 100%;
+            height: 250px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #3a7bd5;
+                --secondary-color: #2c3e50;
+                --text-color: #e0e0e0;
+                --chat-bg-color: #1a2639;
+                --bot-message-bg: #34495e;
+                --input-bg: #2c3e50;
+            }
+
+            body {
+                background: linear-gradient(135deg, #2c3e50 0%, #1a2639 100%);
+            }
+        }
+
+        @media (max-width: 768px) {
+            #main-container {
+                height: 100vh;
+                width: 100%;
+                border-radius: 0;
+            }
+
+            #chat-container {
+                height: 70vh;
+            }
+
+            #media-container {
+                height: 30vh;
+            }
+
+            #input-container {
+                flex-wrap: wrap;
+                justify-content: space-between;
+                padding: 10px;
+            }
+
+            #message {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            #send, #search-soundcloud, #search-youtube {
+                flex: 1;
+                margin: 0 5px 5px 0;
+            }
+
+            .chat-message {
+                max-width: 85%;
+                font-size: 14px;
+            }
+
+            .media-container video,
+            .media-container img,
+            .media-container audio {
+                max-height: 150px;
+            }
+
+            .video-card h2 {
+                font-size: 0.8em;
+            }
+
+            .video-card iframe {
+                height: 200px;
+            }
+        }
+
+            button, #voice-select {
+                flex: 1;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <div id="chat-header">
+            <span>Enhanced Chatbot Experience</span>
+            <i class="fas fa-robot"></i>
+        </div>
+        <div id="chat-container"></div>
+        <div id="input-container">
+            <input type="text" id="message" placeholder="Type a message...">
+            <button id="send"><i class="fas fa-paper-plane"></i></button>
+            <button id="search-soundcloud" onclick="searchSoundCloud(document.getElementById('message').value)">
+                <i class="fab fa-soundcloud"></i>
+            </button>
+            <button id="search-youtube" onclick="searchYouTube(document.getElementById('message').value)">
+                <i class="fab fa-youtube"></i>
+            </button>
+            <select id="voice-select">
+                <option value="vi">Tiếng Việt</option>
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+            </select>
+        </div>
+        <div id="media-container">
+            <div id="audio-player-container">
+                <audio id="audio-player" controls>
+                    <source id="audio-source" src="" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+            <div id="tracks"></div>
+            <div id="player"></div>
+            <div id="videoList"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script>
+        const chat = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message');
+        const sendButton = document.getElementById('send');
+        const voiceSelect = document.getElementById('voice-select');
+        const converter = new showdown.Converter();
+        const audioPlayerContainer = document.getElementById('audio-player-container');
+        const audioPlayer = document.getElementById('audio-player');
+        const audioSource = document.getElementById('audio-source');
+
+        let appData = {};
+        let lastModified = null;
+        let welcomeMessageDisplayed = false;
+
+        fetch('app.json')
+            .then(response => response.json())
+            .then(data => appData = data)
+            .catch(error => console.error('Error loading app data:', error));
+
+        function addMessage(message, speechMessage, isUser = false) {
+            const messageElement = document.createElement('p');
+            messageElement.textContent = message;
+            messageElement.style.color = isUser ? 'blue' : 'green';
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight;
+
+            if (!isUser && speechMessage) {
+                speakMessage(speechMessage);
+            }
+        }
+
+        function speakMessage(message) {
+            const language = voiceSelect.value;
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = language;
+            speechSynthesis.speak(utterance);
+        }
+
+        function handleUserInput() {
+            const userInput = messageInput.value.trim();
+            if (userInput) {
+                addMessage(userInput, null, true);
+                processUserInput(userInput);
+                messageInput.value = '';
+            }
+        }
+
+        function processUserInput(input) {
+            const regex = /Tôi muốn tải (.*)/i;
+            const match = input.match(regex);
+            if (match) {
+                const appName = match[1].toLowerCase();
+                const app = appData[appName];
+                if (app) {
+                    let response = `Đây là những phiên bản ${appName} mà tôi có:\n`;
+                    let speechResponse = `Tôi có ${app.versions.length} phiên bản của ${appName}. `;
+                    app.versions.forEach((version, index) => {
+                        response += `- Phiên bản ${version.number}: ${version.link}\n`;
+                        speechResponse += `Phiên bản ${version.number}${index === app.versions.length - 1 ? '.' : ', '}`;
+                    });
+                    addMessage(response, speechResponse);
+                } else {
+                    const message = `Xin lỗi, tôi không có thông tin về ứng dụng "${appName}".`;
+                    addMessage(message, message);
+                }
+            } else {
+                const message = 'Vui lòng nhập theo định dạng "Tôi muốn tải [tên app]".';
+                addMessage(message, message);
+            }
+        }
+
+        function checkAndUpdateAudio() {
+            fetch('./cache/audio.mp3', { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        const newLastModified = response.headers.get('Last-Modified');
+                        if (newLastModified !== lastModified) {
+                            lastModified = newLastModified;
+                            loadAudio();
+                        }
+                    } else {
+                        audioPlayerContainer.style.display = 'none';
+                    }
+                })
+                .catch(() => audioPlayerContainer.style.display = 'none');
+        }
+
+        function loadAudio() {
+            const audioUrl = `./cache/audio.mp3?t=${new Date().getTime()}`;
+            fetch(audioUrl)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    audioSource.src = url;
+                    audioPlayer.load();
+                    audioPlayerContainer.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error loading audio:', error);
+                    audioPlayerContainer.style.display = 'none';
+                });
+        }
+
+        setInterval(checkAndUpdateAudio, 5000);
+        checkAndUpdateAudio();
+
+        function appendMessage(message, isUser = false) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', isUser ? 'user-message' : 'bot-message');
+
+            if (typeof message === 'string') {
+                messageElement.innerHTML = converter.makeHtml(message);
+            } else if (message.body) {
+                const textElement = document.createElement('div');
+                textElement.innerHTML = converter.makeHtml(message.body);
+                messageElement.appendChild(textElement);
+
+                if (message.attachment) {
+                    message.attachment.forEach(async (att) => {
+                        const mediaContainer = document.createElement('div');
+                        mediaContainer.classList.add('media-container');
+                        let mediaElement;
+                        switch (att.type) {
+                            case 'video':
+                                mediaElement = document.createElement('video');
+                                mediaElement.controls = true;
+                                await new Promise((resolve) => setTimeout(resolve, 5000));
+                                mediaElement.src = `./cache/${att.fileName}`;
+                                mediaElement.addEventListener('error', (e) => {
+                                    console.error(`Error loading ${att.type}:`, e);
+                                    mediaElement.insertAdjacentHTML('afterend', `<p>Error loading ${att.type}. Please check the file path and permissions.</p>`);
+                                });
+                                break;
+                            case 'image':
+                                mediaElement = document.createElement('img');
+                                mediaElement.src = `./cache/${att.fileName}`;
+                                mediaElement.addEventListener('error', (e) => {
+                                    console.error(`Error loading ${att.type}:`, e);
+                                    mediaElement.insertAdjacentHTML('afterend', `<p>Error loading ${att.type}. Please check the file path and permissions.</p>`);
+                                });
+                                break;
+                            case 'audio':
+                                return;
+                            default:
+                                mediaElement = document.createElement('a');
+                                mediaElement.href = `./cache/${att.fileName}`;
+                                mediaElement.textContent = `Download ${att.fileName}`;
+                                mediaElement.target = '_blank';
+                                break;
+                        }
+
+                        mediaContainer.appendChild(mediaElement);
+                        messageElement.appendChild(mediaContainer);
+                    });
+                }
+            }
+
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight;
+
+            const welcomeMessage = "Welcome to the Enhanced Chatbot Experience! You can chat, search for music on SoundCloud, or look up videos on YouTube. Type \"Tôi muốn tải [app name]\" to download apps.";
+            if (!isUser && (typeof message === 'string' ? message : message.body) === welcomeMessage) {
+                speakMessage(welcomeMessage);
+            }
+        }
+
+        function displayAppInfo(appName, versions) {
+            const introText = `Đây là các phiên bản ${appName} mà tôi có:\n`;
+            let fullMessage = `${introText}\n`;
+            versions.forEach((version) => {
+                fullMessage += `\nPhiên bản ${version.number}: <a href="${version.link}" target="_blank">${version.link}\n`;
+            });
+
+            appendMessage(fullMessage);
+            speakMessage(`Đây là các phiên bản ${appName} mà tôi có.`);
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            appendMessage(message, true);
+            messageInput.value = '';
+            sendButton.disabled = true;
+
+            const regex = /Tôi muốn tải (.*)/i;
+            const match = message.match(regex);
+            if (match) {
+                const appName = match[1].toLowerCase();
+                const app = appData[appName];
+                if (app) {
+                    displayAppInfo(appName, app.versions);
+                } else {
+                    const response = `Xin lỗi, tôi không có thông tin về ứng dụng "${appName}".`;
+                    appendMessage(response);
+                    speakMessage(response);
+                }
+                sendButton.disabled = false;
+                return;
+            }
+
+            try {
+                const response = await fetch('/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                appendMessage(data.reply);
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('Sorry, there was an error processing your request.');
+            } finally {
+                sendButton.disabled = false;
+            }
+        }
+
+        function searchSoundCloud(keyword) {
+            const apiKey = "kzkhanhz7517222606";
+            const apiUrl = `https://j8c2z9-2007.csb.app/soundcloud/search?apikey=${apiKey}&keyword=${encodeURIComponent(keyword)}`;
+
+            fetch(apiUrl)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.collection.length > 0) {
+                        let tracksHtml = "";
+                        data.collection.forEach((track, index) => {
+                            tracksHtml += `
+                                <div class="track-item" onclick="playTrack('${track.uri}')">
+                                    <div class="track-number">${index + 1}</div>
+                                    <div class="track-title">${track.title}</div>
+                                </div>
+                            `;
+                        });
+                        document.getElementById("tracks").innerHTML = tracksHtml;
+                    } else {
+                        document.getElementById("tracks").innerHTML = '<p>No tracks found</p>';
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching SoundCloud data:", error);
+                    document.getElementById("tracks").innerHTML = '<p>Error fetching data</p>';
+                });
+        }
+
+        function playTrack(trackUri) {
+            const playerHtml = `<iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(trackUri)}&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe>`;
+            document.getElementById("player").innerHTML = playerHtml;
+        }
+
+        function searchYouTube(keyword) {
+            const apiKey = 'AIzaSyB2w3bNAHWIDxG2RbCpskSKGnu8g5eu8RM';
+            const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&key=${apiKey}&type=video&videoDefinition=high&videoEmbeddable=true&q=${encodeURIComponent(keyword)}`;
+
+            axios.get(apiUrl)
+                .then(function (response) {
+                    const videos = response.data.items;
+                    const videoList = document.getElementById('videoList');
+                    videoList.innerHTML = '';
+
+                    for (let i = 0; i < videos.length; i++) {
+                        const videoId = videos[i].id.videoId;
+                        const videoTitle = videos[i].snippet.title;
+
+                        const videoCard = document.createElement('div');
+                        videoCard.className = 'video-card';
+                        videoCard.innerHTML = `
+                            <h2>${videoTitle}</h2>
+                            <iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+                        `;
+
+                        videoList.appendChild(videoCard);
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Error fetching YouTube data:', error);
+                    document.getElementById('videoList').innerHTML = '<p>Error fetching YouTube data</p>';
+                });
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        appendMessage('Welcome to the Enhanced Chatbot Experience! You can chat, search for music on SoundCloud, or look up videos on YouTube. Type "Tôi muốn tải [app name]" to download apps.');
+    </script>
+
+
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f0f4f8;
+            --text-color: #333;
+            --chat-bg-color: #fff;
+            --user-message-bg: #e3f2fd;
+            --bot-message-bg: #f1f8e9;
+            --input-bg: #fff;
+            --border-radius: 15px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main-container {
+            width: 95%;
+            max-width: 1200px;
+            background-color: var(--chat-bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        #chat-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            max-width: 80%;
+        }
+
+        .user-message {
+            background-color: var(--user-message-bg);
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .bot-message {
+            background-color: var(--bot-message-bg);
+            align-self: flex-start;
+        }
+
+        #input-container {
+            display: flex;
+            padding: 20px;
+            background-color: var(--secondary-color);
+        }
+
+        #message {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: var(--border-radius);
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 5px;
+        }
+
+        button:hover {
+            background-color: #3a7bd5;
+        }
+
+        #media-container {
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-top: 1px solid #ddd;
+        }
+
+        #audio-player-container, #tracks, #player, #videoList {
+            margin-top: 10px;
+        }
+
+        .track-item, .video-card {
+            background-color: var(--chat-bg-color);
+            border-radius: var(--border-radius);
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .track-item:hover, .video-card:hover {
+            background-color: #e9ecef;
+        }
+
+        #voice-select {
+            margin-left: 10px;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            #main-container {
+                height: 100vh;
+                width: 100%;
+                border-radius: 0;
+            }
+
+            #input-container {
+                flex-wrap: wrap;
+            }
+
+            #message {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            button, #voice-select {
+                flex: 1;
+                margin-top: 10px;
+            }
+        }
+    </style>
+        </body>
+        </html>
