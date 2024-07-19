@@ -1,13 +1,46 @@
 const express = require('express');
 const fs = require('fs-extra');
+const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'edit.html'));
+});
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.post('/update-json', (req, res) => {
+  const { appName, appVersion, appLink } = req.body;
+
+  const filePath = path.join(__dirname, 'public', 'app.json');
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: 'Could not read file' });
+    }
+
+    let jsonData = JSON.parse(data);
+
+    if (!jsonData[appName]) {
+      jsonData[appName] = { versions: [] };
+    }
+    jsonData[appName].versions.push({ number: appVersion, link: appLink });
+
+    fs.writeFile(filePath, JSON.stringify(jsonData, null, 2), 'utf8', (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Could not write file' });
+      }
+
+      res.json({ message: 'Data added successfully' });
+    });
+  });
+});
+
 
 // Serve static files (index.html, etc.)
 app.use(express.static(path.join(__dirname)));
